@@ -44,6 +44,19 @@ function swapBytes(x, bitsPerSample) {
   return x;
 }
 
+function getNaudiodonBitDepth(bitDepth){
+  switch(bitDepth){
+      case 8:
+	return naudiodon.SampleFormat8Bit;
+      case 16:
+	return naudiodon.SampleFormat16Bit;
+      case 24:
+	return naudiodon.SampleFormat24Bit;
+      case 32:
+	return naudiodon.SampleFormat32Bit;
+      }
+}
+
 module.exports = function(RED){
   function AUDIOIn(config){
     RED.nodes.createNode(this,config);
@@ -52,10 +65,10 @@ module.exports = function(RED){
       return this.log('Waiting for global context to be updated');
     var node = this;
     this.baseTime = [ Date.now() / 1000|0, (Date.now() % 1000) * 1000000 ];
-    this.blockAlign = 4;
-    this.sampleRate = 44100;
-    this.channelCount = 2;
-    this.bytePerSample = 2;
+    this.sampleRate = config.sample;
+    this.channelCount = config.channels;
+    this.bytePerSample = config.bitDepth / 8;
+    this.blockAlign = this.bytePerSample * this.channelCount;
     var nodeAPI = this.context().global.get('nodeAPI');
     var ledger = this.context().global.get('ledger');
     var localName = config.name || `${config.type}-${config.id}`;
@@ -69,7 +82,7 @@ module.exports = function(RED){
     nodeAPI.putResource(source).then(function(){
       var pr = new naudiodon.AudioReader({
   	channelCount :this.channelCount,
-  	sampleFormat: naudiodon.SampleFormat16Bit,
+  	sampleFormat: getNaudiodonBitDepth(config.bitDepth),
   	sampleRate: this.sampleRate,
       });
 
