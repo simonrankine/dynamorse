@@ -67,6 +67,7 @@ module.exports = function(RED){
     this.baseTime = [ Date.now() / 1000|0, (Date.now() % 1000) * 1000000 ];
     this.sampleRate = config.sample;
     this.channelCount = config.channels;
+    this.device = config.inputDevice;
     this.bytePerSample = config.bitDepth / 8;
     this.blockAlign = this.bytePerSample * this.channelCount;
     var nodeAPI = this.context().global.get('nodeAPI');
@@ -82,8 +83,9 @@ module.exports = function(RED){
     nodeAPI.putResource(source).then(function(){
       var pr = new naudiodon.AudioReader({
   	channelCount :this.channelCount,
-  	sampleFormat: getNaudiodonBitDepth(config.bitDepth),
+  	sampleFormat: 16,
   	sampleRate: this.sampleRate,
+	device: this.device,
       });
 
       pr.once('audio_ready',function(pa){
